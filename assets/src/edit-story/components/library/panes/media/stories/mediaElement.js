@@ -42,6 +42,7 @@ export const _Image = () => {
   const resource = object('Image Resource', {
     type: 'image',
     mimeType: 'image/png',
+    title: 'My Image :)',
     src: testImage,
     width: 910,
     height: 675,
@@ -63,6 +64,7 @@ export const _Video = () => {
   const resource = object('Video Resource', {
     type: 'video',
     mimeType: 'video/mp4',
+    title: 'My Video :)',
     src: testVideo,
     width: 640,
     height: 480,
