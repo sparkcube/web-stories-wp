@@ -23,15 +23,14 @@ import { useCallback, useState, useRef } from 'react';
 /**
  * Internal dependencies
  */
+import loadStylesheet from '../../utils/loadStylesheet';
 import Context from './context';
-
 import useLoadFonts from './effects/useLoadFonts';
 import useLoadFontFiles from './actions/useLoadFontFiles';
 
 const GOOGLE_MENU_FONT_URL = 'https://fonts.googleapis.com/css';
 
 function FontProvider({ children }) {
-  const loadedFontFamily = useRef([]);
   const [fonts, setFonts] = useState([]);
   const [recentUsedFontValues, setRecentUsedFontValues] = useState([]);
 
@@ -71,26 +70,20 @@ function FontProvider({ children }) {
 
   const maybeEnqueueFontStyle = useLoadFontFiles();
 
-  const getMenuFonts = useCallback((fontFamilyList) => {
-    const newFontList = fontFamilyList.filter(
-      (fontName) => loadedFontFamily.current.indexOf(fontName) < 0
+  const menuFonts = useRef([]);
+  const ensureMenuFontsLoaded = useCallback((menuFontsRequested) => {
+    const newMenuFonts = menuFontsRequested.filter(
+      (fontName) => !menuFonts.current.includes(fontName)
     );
-    loadedFontFamily.current = [...loadedFontFamily.current, ...newFontList];
-    if (!newFontList?.length) {
-      return Promise.resolve('');
+    if (!newMenuFonts?.length) {
+      return;
     }
-    return fetch(
-      `${GOOGLE_MENU_FONT_URL}?family=${encodeURIComponent(
-        newFontList.join('|')
-      )}&subset=menu`
-    )
-      .then((response) => {
-        return response.text();
-      })
-      .catch(() => {
-        loadedFontFamily.current.length =
-          loadedFontFamily.current.length - newFontList.length;
-      });
+    menuFonts.current = menuFonts.current.concat(newMenuFonts);
+
+    // Create new <link> in head with ref to new font families
+    const families = encodeURIComponent(newMenuFonts.join('|'));
+    const url = `${GOOGLE_MENU_FONT_URL}?family=${families}&subset=menu`;
+    loadStylesheet(url);
   }, []);
 
   const state = {
@@ -102,7 +95,7 @@ function FontProvider({ children }) {
       insertUsedFont,
       getFontByName,
       maybeEnqueueFontStyle,
-      getMenuFonts,
+      ensureMenuFontsLoaded,
     },
   };
 
