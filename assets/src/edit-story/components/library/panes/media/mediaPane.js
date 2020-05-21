@@ -36,7 +36,6 @@ import useIntersectionEffect from '../../../../utils/useIntersectionEffect';
 import { MainButton, SearchInput } from '../../common';
 import useLibrary from '../../useLibrary';
 import { Pane } from '../shared';
-import { DEFAULT_DPR, PAGE_WIDTH } from '../../../../constants';
 import {
   getTypeFromMime,
   getResourceFromMediaPicker,
@@ -124,8 +123,6 @@ const FILTERS = [
   { filter: 'video', name: __('Video', 'web-stories') },
 ];
 
-// By default, the element should be 50% of the page.
-const DEFAULT_ELEMENT_WIDTH = PAGE_WIDTH / 2;
 const PREVIEW_SIZE = 150;
 
 function MediaPane(props) {
@@ -196,10 +193,10 @@ function MediaPane(props) {
    * @param {Object} resource Resource object
    * @return {null|*} Return onInsert or null.
    */
-  const insertMediaElement = (resource) => {
-    const width = Math.min(resource.width * DEFAULT_DPR, DEFAULT_ELEMENT_WIDTH);
-    return insertElement(resource.type, { resource, width });
-  };
+  const insertMediaElement = useCallback(
+    (resource) => insertElement(resource.type, { resource }),
+    [insertElement]
+  );
 
   /**
    * Check if number is odd or even.
@@ -252,7 +249,7 @@ function MediaPane(props) {
 
       setNextPage();
     },
-    [hasMore, isMediaLoading, isMediaLoaded]
+    [hasMore, isMediaLoading, isMediaLoaded, setNextPage]
   );
 
   return (

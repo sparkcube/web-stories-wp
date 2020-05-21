@@ -385,12 +385,11 @@ class Story_Post_Type {
 					'hasUploadMediaAction'  => $has_upload_media_action,
 				],
 				'api'              => [
-					'stories'  => sprintf( '/wp/v2/%s', $rest_base ),
-					'media'    => '/wp/v2/media',
-					'users'    => '/wp/v2/users',
-					'statuses' => '/wp/v2/statuses',
-					'fonts'    => '/web-stories/v1/fonts',
-					'link'     => '/web-stories/v1/link',
+					'stories' => sprintf( '/wp/v2/%s', $rest_base ),
+					'media'   => '/wp/v2/media',
+					'users'   => '/wp/v2/users',
+					'fonts'   => '/web-stories/v1/fonts',
+					'link'    => '/web-stories/v1/link',
 				],
 				'metadata'         => [
 					'publisher'       => self::get_publisher_data(),
@@ -398,6 +397,7 @@ class Story_Post_Type {
 					'fallbackPoster'  => plugins_url( 'assets/images/fallback-poster.jpg', WEBSTORIES_PLUGIN_FILE ),
 				],
 			],
+			'flags'  => [],
 		];
 
 		return $settings;

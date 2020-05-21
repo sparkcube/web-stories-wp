@@ -35,6 +35,7 @@ import { PAGE_HEIGHT } from '../../../constants';
 import { useFont } from '../../../app/font';
 import { getCommonValue } from '../utils';
 import objectPick from '../../../utils/objectPick';
+import stripHTML from '../../../utils/stripHTML';
 import useRichTextFormatting from './useRichTextFormatting';
 import getFontWeights from './getFontWeights';
 
@@ -55,18 +56,19 @@ function FontControls({ selectedElements, pushUpdate }) {
   const fontSize = getCommonValue(selectedElements, 'fontSize');
 
   const {
-    textInfo: { fontWeight },
+    textInfo: { fontWeight, isItalic },
     handlers: { handleSelectFontWeight },
   } = useRichTextFormatting(selectedElements, pushUpdate);
 
   const {
     state: { fonts },
-    actions: { getFontByName },
+    actions: { maybeEnqueueFontStyle, getFontByName },
   } = useFont();
   const fontWeights = useMemo(() => getFontWeights(getFontByName(fontFamily)), [
     getFontByName,
     fontFamily,
   ]);
+  const fontStyle = isItalic ? 'italic' : 'normal';
 
   return (
     <>
@@ -75,21 +77,33 @@ function FontControls({ selectedElements, pushUpdate }) {
           <FontPicker
             data-testid="font"
             value={fontFamily}
-            onChange={(value) => {
+            onChange={async (value) => {
               const fontObj = fonts.find((item) => item.value === value);
+              const newFont = {
+                family: value,
+                ...objectPick(fontObj, [
+                  'service',
+                  'fallbacks',
+                  'weights',
+                  'styles',
+                  'variants',
+                ]),
+              };
+
+              await maybeEnqueueFontStyle(
+                selectedElements.map(({ content }) => {
+                  return {
+                    font: newFont,
+                    fontStyle,
+                    fontWeight,
+                    content: stripHTML(content),
+                  };
+                })
+              );
 
               pushUpdate(
                 {
-                  font: {
-                    family: value,
-                    ...objectPick(fontObj, [
-                      'service',
-                      'fallbacks',
-                      'weights',
-                      'styles',
-                      'variants',
-                    ]),
-                  },
+                  font: newFont,
                 },
                 true
               );
@@ -106,7 +120,19 @@ function FontControls({ selectedElements, pushUpdate }) {
               placeholder={__('(multiple)', 'web-stories')}
               options={fontWeights}
               value={fontWeight}
-              onChange={handleSelectFontWeight}
+              onChange={async (value) => {
+                await maybeEnqueueFontStyle(
+                  selectedElements.map(({ font, content }) => {
+                    return {
+                      font,
+                      fontStyle,
+                      fontWeight: parseInt(value),
+                      content: stripHTML(content),
+                    };
+                  })
+                );
+                handleSelectFontWeight(value);
+              }}
             />
             <Space />
           </>

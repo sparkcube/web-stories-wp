@@ -1,0 +1,106 @@
+<?php
+/**
+ * Copyright 2020 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+namespace Google\Web_Stories\Tests;
+
+use Google\Web_Stories\REST_API\Stories_Controller;
+
+class Database_Upgrader extends \WP_UnitTestCase {
+	public function setUp() {
+		parent::setUp();
+		$option_name = \Google\Web_Stories\Database_Upgrader::OPTION;
+		delete_option( $option_name );
+	}
+
+	public function test_init() {
+		$object = new \Google\Web_Stories\Database_Upgrader();
+		$object->init();
+		$this->assertSame( WEBSTORIES_DB_VERSION, get_option( $object::OPTION ) );
+	}
+
+	public function test_v_2_remove_conic_style_presets() {
+		$radial_preset = [
+			[
+				'color'              => [],
+				'backgroundColor'    =>
+					[
+						'type'     => 'radial',
+						'stops'    => [],
+						'rotation' => 0.5,
+					],
+				'backgroundTextMode' => 'FILL',
+			],
+		];
+		$presets       = [
+			'fillColors' => [
+				[
+					'type'     => 'conic',
+					'stops'    =>
+						[
+							[
+								'color'    => [],
+								'position' => 0,
+							],
+							[
+								'color'    => [],
+								'position' => 0.7,
+							],
+						],
+					'rotation' => 0.5,
+				],
+			],
+			'textColors' => [
+				[
+					'color' => [],
+				],
+			],
+			'textStyles' => [
+				[
+					'color'              => [],
+					'backgroundColor'    =>
+						[
+							'type'     => 'conic',
+							'stops'    => [],
+							'rotation' => 0.5,
+						],
+					'backgroundTextMode' => 'FILL',
+					'font'               => [],
+				],
+				$radial_preset,
+			],
+		];
+		add_option( Stories_Controller::STYLE_PRESETS_OPTION, $presets );
+
+		$object = new \Google\Web_Stories\Database_Upgrader();
+		$object->init();
+
+		$style_presets = get_option( Stories_Controller::STYLE_PRESETS_OPTION );
+		$this->assertSame( $style_presets['textStyles'][1], $radial_preset );
+		$this->assertSame( $style_presets['textStyles'][0]['backgroundColor']['type'], 'linear' );
+		$this->assertSame( $style_presets['fillColors'][0]['type'], 'linear' );
+		$this->assertSame(
+			$style_presets['textColors'],
+			[
+				[
+					'color' => [],
+				],
+			]
+		);
+
+		delete_option( Stories_Controller::STYLE_PRESETS_OPTION );
+	}
+}
