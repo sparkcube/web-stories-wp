@@ -19,7 +19,7 @@
  */
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 /**
  * WordPress dependencies
@@ -86,6 +86,10 @@ function DropDownMenu({
     }
   };
 
+  const onCloseEditDialog = useCallback(() => setShowEditDialog(false), [
+    setShowEditDialog,
+  ]);
+
   // Keep icon and menu displayed if menu is open (even if user's mouse leaves the area).
   return (
     !resource.local && ( // Don't show menu if resource not uploaded to server yet.
@@ -114,7 +118,7 @@ function DropDownMenu({
           </>
         )}
         {showEditDialog && (
-          <MediaEditDialog resource={resource} onClose={setShowEditDialog} />
+          <MediaEditDialog resource={resource} onClose={onCloseEditDialog} />
         )}
       </div>
     )
