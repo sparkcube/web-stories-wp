@@ -51,7 +51,7 @@ function MediaProvider({ children }) {
   const fetchMedia = useCallback(
     (
       {
-        searchTerm: currentSearchTerm,
+        searchTerm: currentSearchTerm = '',
         pagingNum: p = 1,
         mediaType: currentMediaType,
       } = {},
