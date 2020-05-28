@@ -18,7 +18,7 @@
  * External dependencies
  */
 import PropTypes from 'prop-types';
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect } from 'react';
 
 /**
  * Internal dependencies
@@ -44,7 +44,9 @@ function MultiSelectionMovable({ selectedElements }) {
     state: {
       pageSize: { width: canvasWidth, height: canvasHeight },
       nodesById,
+      isDragging,
     },
+    actions: { setIsResizing, setIsDragging },
   } = useCanvas();
   const {
     actions: { editorToDataX, editorToDataY, dataToEditorY },
@@ -55,8 +57,6 @@ function MultiSelectionMovable({ selectedElements }) {
   const {
     state: { draggingResource },
   } = useDropTargets();
-
-  const [isDragging, setIsDragging] = useState(false);
 
   // Update moveable with whatever properties could be updated outside moveable
   // itself.
@@ -229,6 +229,7 @@ function MultiSelectionMovable({ selectedElements }) {
         });
       }}
       onResizeGroup={({ events }) => {
+        setIsResizing(true);
         events.forEach(({ target, direction, width, height, drag }, i) => {
           const sFrame = frames[i];
           const { element, updateForResizeEvent } = targetList[i];
@@ -256,6 +257,7 @@ function MultiSelectionMovable({ selectedElements }) {
         });
       }}
       onResizeGroupEnd={({ targets }) => {
+        setIsResizing(false);
         onGroupEventEnd({ targets, isResize: true });
       }}
       renderDirections={CORNER_HANDLES}
